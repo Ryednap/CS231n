@@ -32,7 +32,15 @@ class KNearestNeighbor(object):
                 between training points and testing points.
         :return: A numpy array of shape (num_test, ) containing predicted labels.
         """
-        pass
+        if num_loops == 0:
+            dists = self.compute_distances_no_loops(X)
+        elif num_loops == 1:
+            dists = self.compute_distances_one_loop(X)
+        elif num_loops == 2:
+            dists = self.compute_distances_two_loops(X)
+        else:
+            raise ValueError(f"Provided {num_loops} num_loops doesn't exist")
+        return dists
 
     def compute_distances_two_loops(self, X: np.ndarray) -> np.ndarray:
         """
@@ -65,13 +73,13 @@ class KNearestNeighbor(object):
 
         return dists
 
-    def compute_distance_one_loops(self, X: np.ndarray) -> np.ndarray:
+    def compute_distances_one_loop(self, X: np.ndarray) -> np.ndarray:
         """
         Compute the distance between each test point in `X` and each training point
         in `self.X_train` using a single loop over the test data.
 
         :param X: A numpy array of shape (num_test, D) containing test data
-        :return: `dists` - A numpy array of shape  (num_test, num_train) where,
+        :return: `dists` - A numpy array of shape (num_test, num_train) where,
                 dists[i, j] is the Euclidean distance between the ith test point and
                 the jth training point.
         """
@@ -94,13 +102,13 @@ class KNearestNeighbor(object):
 
         return dists
 
-    def compute_distance_no_loops(self, X: np.ndarray) -> np.ndarray:
+    def compute_distances_no_loops(self, X: np.ndarray) -> np.ndarray:
         """
         Compute the distance between each test point in `X` and each training point
         in `self.X_train` using no explicit loops.
 
         :param X: A numpy array of shape (num_test, D) containing test data
-        :return: `dists` - A numpy array of shape  (num_test, num_train) where,
+        :return: `dists` - A numpy array of shape (num_test, num_train) where,
                 dists[i, j] is the Euclidean distance between the ith test point and
                 the jth training point.
         """
@@ -137,9 +145,9 @@ class KNearestNeighbor(object):
 
         :param dists: A numpy array of shape (num_test, num_train) where dists[i, j]
                 gives the distance between the ith test point and the jth training point.
-        :param k: Integer representing number of k-nearest neighbours distances to consider
-                to vote for label.
-        :return: A numy array of shape (num_test, ) containing predicted labels for the test data,
+        :param k: Integer representing the number of k-nearest neighbors distances to consider
+                 voting for label.
+        :return: A numpy array of shape (num_test, ) containing predicted labels for the test data,
                 where y[i] is the predicted label for the test point X[i].
         """
 
