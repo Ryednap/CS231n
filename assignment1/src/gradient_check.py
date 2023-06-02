@@ -69,5 +69,6 @@ def grad_check_sparse(f: Callable[[np.ndarray], float], x: np.ndarray, analytic_
         grad_analytic = analytic_grad[ix]
         rel_error = abs(grad_numerical - grad_analytic) / (abs(grad_numerical) + abs(grad_analytic))
         print(
-            f"numerical: {grad_numerical} analytic: {grad_analytic}, relative_error: {rel_error}"
+            "numerical: %f analytic: %f, relative error: %e"
+            % (grad_numerical, grad_analytic, rel_error)
         )

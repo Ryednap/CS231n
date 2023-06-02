@@ -21,7 +21,7 @@ def svm_loss_naive(W: np.ndarray, X: np.ndarray, y: np.ndarray, reg: float) -> T
         - gradient with respect to weights W; a numpy array of the same shape as W.
     """
 
-    dW = np.zeros_like(W.shape)  # initialize the gradient as zero
+    dW = np.zeros_like(W)  # initialize the gradient as zero
 
     # compute the loss and the gradient
     num_classes = W.shape[1]
@@ -37,13 +37,17 @@ def svm_loss_naive(W: np.ndarray, X: np.ndarray, y: np.ndarray, reg: float) -> T
             margin = scores[j] - correct_class_score + 1  # Note: delta = 1
             if margin > 0:
                 loss += margin
+                dW[np.arange(dW.shape[0]), j] += X[i]
+                dW[np.arange(dW.shape[0]), y[i]] -= X[i]
 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead, so we divide by num_train.
     loss /= num_train
+    dW /= num_train
 
     # Add regularization to the loss.
     loss += reg * np.sum(W * W)
+    dW += 2 * reg * W
 
     #############################################################################
     # TODO:                                                                     #
@@ -88,9 +92,25 @@ def svm_loss_vectorized(W: np.ndarray, X: np.ndarray, y: np.ndarray, reg: float)
     # result in loss.                                                           #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    num_train = X.shape[0]
 
-    pass
+    scores = X.dot(W)  # (N, C) matrix
+    dScores = X.T  # derivative of scores with respect to W
 
+    margin = np.fmax(0, scores - scores[np.arange(num_train), y].reshape(-1, 1) + 1)  # delta = 1
+    margin[np.arange(num_train), y] = 0  # set the margin to 0 for the class where we have label
+
+    dMargin = np.where(margin > 0, 1, 0)  # derivative of margin with respect to scores
+    dMargin[np.arange(num_train), y] = -np.count_nonzero(margin, axis=1)
+
+    loss = np.sum(margin)
+    dW = dScores.dot(dMargin)
+
+    loss /= num_train
+    dW /= num_train
+
+    loss += reg * np.sum(W * W)
+    dW += 2 * reg * W
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     #############################################################################
