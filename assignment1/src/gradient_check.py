@@ -37,8 +37,33 @@ def eval_numerical_gradient(f: Callable[[np.ndarray], float], x: np.ndarray, ver
         return grad
 
 
-def eval_numerical_gradient_array(f, x, df, h=0.00001):
-    pass
+def eval_numerical_gradient_array(f: Callable[[np.ndarray], np.ndarray], x: np.ndarray, df, h=0.00001):
+    """
+    Evaluate a numeric gradient for a function that accepts a numpy array and returns a numpy array.
+    Specifically, this method calculated the gradient of the input x with respect to a function that
+    has n-dimensional output. To calculate the gradient, we are using the chain rule and upstream derivative
+    is given to us.
+
+    :param f: A function that takes a numpy ndarray and returns the value of the function at that point,
+            which is also a numpy array.
+    :param x: A numpy ndarray representing a specific point in higher dimensional.
+    :param df: An upstream gradient array that needs to be multiple with numerical gradient.
+    :param h: A float representing step size for numerical gradient calculation
+    :return:
+    """
+
+    grad = np.zeros_like(x)
+    for ix in np.ndindex(x.shape[0]):
+
+        oldval = x[ix]
+        x[ix] = oldval + h
+        pos = f(x).copy()
+        x[ix] = oldval - h
+        neg = f(x).copy()
+        x[ix] = oldval
+
+        grad[ix] = np.sum((pos - neg) * df) / (2 * h)
+    return grad
 
 
 def grad_check_sparse(f: Callable[[np.ndarray], float], x: np.ndarray, analytic_grad: np.ndarray, num_checks=10, h=1e-5)\
