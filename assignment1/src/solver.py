@@ -48,7 +48,6 @@ class Solver(object):
 
     A solver works on a model object that must conform to the following API:
 
-
     - model.params must be a dictionary mapping string parameter names to numpy
       arrays containing parameter values.
 
@@ -151,7 +150,10 @@ class Solver(object):
         self.val_acc_history = []
 
         # Make a deep copy of the optim_config for each parameter
-        self.optim_configs = deepcopy(self.optim_config)
+        self.optim_configs = {}
+        for p in self.model.params:
+            d = {k: v for k, v in self.optim_config.items()}
+            self.optim_configs[p] = d
 
     def _step(self) -> None:
         """

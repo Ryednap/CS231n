@@ -2,6 +2,8 @@ import typing
 
 import numpy as np
 
+from src.layer_utils import *
+
 
 class TwoLayerNet(object):
     """
