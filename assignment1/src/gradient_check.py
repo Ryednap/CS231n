@@ -18,9 +18,12 @@ def eval_numerical_gradient(f: Callable[[np.ndarray], float], x: np.ndarray, ver
     fx = f(x)  # evaluate function value at original point
     grad = np.zeros_like(x)
 
-    # iterate over all indexes of x.
-    for ix in np.ndindex(x.shape[0]):
+    # iterate over all indexes in x
+    it = np.nditer(x, flags=["multi_index"], op_flags=["readwrite"])
+    while not it.finished:
 
+        # evaluate function at x+h
+        ix = it.multi_index
         oldval = x[ix]
         x[ix] = oldval + h  # increment by h
         fxph = f(x)  # evaluate f(x + h)
@@ -30,11 +33,11 @@ def eval_numerical_gradient(f: Callable[[np.ndarray], float], x: np.ndarray, ver
 
         # compute the partial derivative with centered formula
         grad[ix] = (fxph - fxmh) / (2 * h)  # the slope
-
         if verbose:
             print(ix, grad[ix])
+        it.iternext()  # step to next dimension
 
-        return grad
+    return grad
 
 
 def eval_numerical_gradient_array(f: Callable[[np.ndarray], np.ndarray], x: np.ndarray, df, h=0.00001):
@@ -53,8 +56,9 @@ def eval_numerical_gradient_array(f: Callable[[np.ndarray], np.ndarray], x: np.n
     """
 
     grad = np.zeros_like(x)
-    for ix in np.ndindex(x.shape[0]):
-
+    it = np.nditer(x, flags=["multi_index"], op_flags=["readwrite"])
+    while not it.finished:
+        ix = it.multi_index
         oldval = x[ix]
         x[ix] = oldval + h
         pos = f(x).copy()
@@ -63,6 +67,7 @@ def eval_numerical_gradient_array(f: Callable[[np.ndarray], np.ndarray], x: np.n
         x[ix] = oldval
 
         grad[ix] = np.sum((pos - neg) * df) / (2 * h)
+        it.iternext()
     return grad
 
 

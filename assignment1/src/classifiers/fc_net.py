@@ -2,6 +2,8 @@ import typing
 
 import numpy as np
 
+from src.layer_utils import *
+
 
 class TwoLayerNet(object):
     """
@@ -48,7 +50,11 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        self.params['W1'] = np.random.normal(loc=0.0, scale=weight_scale, size=(input_dim, hidden_dim))
+        self.params['b1'] = np.zeros(shape=(hidden_dim,))
+        self.params['W2'] = np.random.normal(loc=0.0, scale=weight_scale, size=(hidden_dim, num_classes))
+        self.params['b2'] = np.zeros(shape=(num_classes,))
+
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -87,7 +93,8 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        fc1_out, fc1_cache = affine_relu_forward(X, self.params['W1'], self.params['b1'])
+        scores, fc2_cache = affine_relu_forward(fc1_out, self.params['W2'], self.params['b2'])
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -111,7 +118,20 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        loss, dScores = softmax_loss(scores, y)
+
+        dfc1_out, grads['W2'], grads['b2'] = affine_relu_backward(dScores, fc2_cache)
+        dx, grads['W1'], grads['b1'] = affine_relu_backward(dfc1_out, fc1_cache)
+
+        # Add regularization loss
+        loss += 0.5 * self.reg * (
+            np.sum(self.params['W2'] * self.params['W2']) +\
+            np.sum(self.params['W1'] * self.params['W1'])
+        )
+
+        # Add regularization gradients to weights
+        grads['W2'] += 0.5 * 2 * self.reg * self.params['W2']
+        grads['W1'] += 0.5 * 2 * self.reg * self.params['W1']
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################

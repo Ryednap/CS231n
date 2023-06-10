@@ -22,7 +22,7 @@ def affine_forward(x: np.ndarray, w: np.ndarray, b: np.ndarray) -> tuple[np.ndar
     """
     Computes the forward pass for an affine (fully-connected) layer.
 
-    The in put `x` has shape (N, d_1, ..., d_k) and contains a minibatch of N examples,
+    The input `x` has shape (N, d_1, ..., d_k) and contains a minibatch of N examples,
     where each example x[i] has shape (d_1, ..., d_k). We will reshape each input into
     a vector of dimension D = d_1 * d_2 * .... * d_k (effectively flattening out), and
     then transform it to an output vector of dimension M.
@@ -42,7 +42,8 @@ def affine_forward(x: np.ndarray, w: np.ndarray, b: np.ndarray) -> tuple[np.ndar
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    flatten = np.reshape(x, (x.shape[0], -1))  # Assuming batch-first
+    out = flatten.dot(w) + b
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -74,7 +75,20 @@ def affine_backward(dout: np.ndarray, cache: AffineCache) -> AffineGrad:
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    flatten = np.reshape(x, (x.shape[0], -1))
+
+    dw = flatten.T @ dout
+
+    dx = dout @ w.T  # gradient with respect W.X + b
+    dx = np.reshape(dx, x.shape)  # gradient with respect to flatten
+
+    """
+        Be aware that np.sum() and matrix multiplication shapes will not match.
+        always cross check the shape of the gradient with respect to parameter.
+    """
+    # db = np.sum(dout, axis = 1)   # one of the other approach
+    db = np.ones((1, x.shape[0])) @ dout   # this comes nicely out of chain rule.
+    db = np.reshape(db, b.shape)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -99,7 +113,7 @@ def relu_forward(x: np.ndarray) -> tuple[np.ndarray, ReluCache]:
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    out = np.fmax(0, x)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -125,7 +139,7 @@ def relu_backward(dout: np.ndarray, cache: ReluCache) -> ReluGrad:
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dx = np.where(x > 0, dout, 0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -152,8 +166,19 @@ def svm_loss(x: np.ndarray, y: np.ndarray) -> tuple[float, np.ndarray]:
     # TODO: Copy over your solution from A1.
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    N = x.shape[0]
 
-    pass
+    margin = np.fmax(0, x - x[np.arange(N), y].reshape(-1, 1) + 1)  # delta = 1
+    dx = np.ones_like(x)
+
+    margin[np.arange(N), y] = 0
+    dx[np.arange(N), y] = 0
+
+    loss = np.sum(margin)
+    dx[np.arange(N), y] = -np.count_nonzero(margin, axis=1)
+
+    loss /= N
+    dx /= N
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -181,7 +206,19 @@ def softmax_loss(x: np.ndarray, y: np.ndarray) -> tuple[float, np.ndarray]:
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = x.shape[0]
+
+    expo = np.exp(x - np.max(x, axis=1, keepdims=True))  # would save a lot of time
+
+    proba = expo[np.arange(N), y].reshape(-1, 1) / np.sum(expo, axis=1, keepdims=True)
+
+    nll = -np.log(proba)
+
+    dx = expo / np.sum(expo, axis=1, keepdims=True)
+    dx[np.arange(N), y] -= 1
+
+    loss = np.sum(nll) / N
+    dx /= N
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
